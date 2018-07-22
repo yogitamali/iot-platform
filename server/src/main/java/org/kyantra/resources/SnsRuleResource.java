@@ -52,7 +52,8 @@ public class SnsRuleResource extends BaseResource {
                          @FormParam("subject") String subject,
                          @FormParam("message") String message,
                          @FormParam("interval") Integer interval,
-                         @FormParam("sns_topic") String snsTopic) {
+                         @FormParam("sns_topic") String snsTopic,
+                         @FormParam("ruleIfXml") String ruleIfXml) {
         /*
          * Steps:
          * 1. create SnsBean
@@ -66,9 +67,9 @@ public class SnsRuleResource extends BaseResource {
         ThingBean targetThing = ThingDAO.getInstance().get(parentThingId);
         UserBean user = (UserBean) getSecurityContext().getUserPrincipal();
 
-        if (targetThing == null) 
+        if (targetThing == null)
             throw  new DataNotFoundException(ExceptionMessage.DATA_NOT_FOUND);
-        
+
         if (AuthorizationHelper.getInstance().checkAccess(user, targetThing)) {
             // create SnsBean
             SnsBean snsBean = new SnsBean();
@@ -87,6 +88,9 @@ public class SnsRuleResource extends BaseResource {
             ruleBean.setType("SNS");
             ruleBean.setParentThing(ThingDAO.getInstance().get(parentThingId));
 
+            BlocklyBean blocklyIfXmlBean = new BlocklyBean();
+            blocklyIfXmlBean.setXml(ruleIfXml);
+            blocklyIfXmlBean.setParentThing(ThingDAO.getInstance().get(parentThingId));
 
             Set<ConstraintViolation<RuleBean>> constraintViolations = ValidatorService.getValidator().validate(ruleBean);
 
@@ -122,9 +126,11 @@ public class SnsRuleResource extends BaseResource {
 
                 // Get updated ruleBean
                 ruleBean = RuleDAO.getInstance().get(ruleBean.getId());
-
+                blocklyIfXmlBean.setBlockId(ruleBean.getId());
+                BlocklyDAO.getInstance().add(blocklyIfXmlBean);
             } catch (Exception e) {
-                throw e;
+                e.printStackTrace();
+                return "{\"success\": false}";
             }
             return gson.toJson(ruleBean);
         }
@@ -163,7 +169,8 @@ public class SnsRuleResource extends BaseResource {
                          @FormParam("description") String description,
                          @FormParam("data") String data,
                          @FormParam("condition") String condition,
-                         @FormParam("parentThing") Integer parentThingId) {
+                         @FormParam("parentThing") Integer parentThingId,
+                         @FormParam("ruleIfXml") String ruleIfXml) {
 
         // create RuleBean
         RuleBean ruleBean = RuleDAO.getInstance().get(ruleId);
@@ -193,6 +200,11 @@ public class SnsRuleResource extends BaseResource {
 
             // Get updated ruleBean
             ruleBean = RuleDAO.getInstance().get(ruleBean.getId());
+
+            BlocklyBean blocklyIfXmlBean = BlocklyDAO.getInstance().getByBlockId(ruleBean.getId());
+            BlocklyDAO.getInstance().update(blocklyIfXmlBean.getId(),
+                                    ruleBean.getId(),
+                                    ruleIfXml);
 
             return gson.toJson(ruleBean);
         }
@@ -227,6 +239,8 @@ public class SnsRuleResource extends BaseResource {
             // delete rule in AWS
             DeleteTopicRuleResult deleteTopicRuleResult = RuleHelper.getInstance().deleteRule(ruleBean);
 
+            BlocklyBean blocklyIfBean = BlocklyDAO.getInstance().getByBlockId(ruleBean.getId());
+            BlocklyDAO.getInstance().delete(blocklyIfBean.getId());
             // delete rule bean which should also delete entries from SNS and SNSSubscriptions
             RuleDAO.getInstance().delete(ruleId);
             return "{\"success\": true}";
@@ -262,6 +276,9 @@ public class SnsRuleResource extends BaseResource {
         if (AuthorizationHelper.getInstance().checkAccess(user, targetThing)) {
             // delete rule in AWS
             DeleteTopicRuleResult deleteTopicRuleResult = RuleHelper.getInstance().deleteRule(ruleBean);
+
+            BlocklyBean blocklyIfBean = BlocklyDAO.getInstance().getByBlockId(ruleBean.getId());
+            BlocklyDAO.getInstance().delete(blocklyIfBean.getId());
 
             // delete rule bean which should also delete entries from SNS and SNSSubscriptions
             RuleDAO.getInstance().deleteByName(ruleName);

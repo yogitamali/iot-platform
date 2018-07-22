@@ -20,9 +20,13 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.Deque;
 import java.util.Map;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import io.swagger.annotations.Api;
+
 
 @Path("/pubsub")
+@Api(value="pubsub")
 public class PubSubResource extends BaseResource {
 
     static AWSIotMqttClient client;
@@ -71,8 +75,8 @@ public class PubSubResource extends BaseResource {
         if (thingBean == null)
             throw new DataNotFoundException(ExceptionMessage.DATA_NOT_FOUND);
 
-        if (!AuthorizationHelper.getInstance().checkAccess(userBean, thingBean))
-            throw new ForbiddenException(ExceptionMessage.FORBIDDEN);
+        //if (!AuthorizationHelper.getInstance().checkAccess(userBean, thingBean))
+            //throw new ForbiddenException(ExceptionMessage.FORBIDDEN);
 
         String shadowName = "thing" + thingBean.getId();
 
@@ -124,6 +128,16 @@ public class PubSubResource extends BaseResource {
 
         client.publish(bean.getUpdateTopic(),gson.toJson(bean.getMap()));
         return  gson.toJson(bean.getMap());
+    }
+
+    @GET
+    @Path("attribute/{str}")
+    @Secure(roles = {RoleEnum.READ, RoleEnum.WRITE, RoleEnum.ALL})
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public String getPubSubList(@PathParam("str") String str) {
+        List <PubSubBean> deviceAttributes = DeviceAttributeDAO.getInstance().listForPubSub(str);
+        return gson.toJson(deviceAttributes);
     }
 
 

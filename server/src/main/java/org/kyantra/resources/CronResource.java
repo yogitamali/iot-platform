@@ -4,8 +4,10 @@ import io.swagger.annotations.Api;
 import org.kyantra.beans.CronBean;
 import org.kyantra.beans.RoleEnum;
 import org.kyantra.beans.ThingBean;
+import org.kyantra.beans.BlocklyBean;
 import org.kyantra.beans.UserBean;
 import org.kyantra.dao.CronDAO;
+import org.kyantra.dao.BlocklyDAO;
 import org.kyantra.dao.ThingDAO;
 import org.kyantra.exceptionhandling.AccessDeniedException;
 import org.kyantra.helper.AuthorizationHelper;
@@ -22,6 +24,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.util.Set;
+import java.util.List;
 
 /**
  * Created by Lenovo on 12-11-2017.
@@ -31,6 +34,7 @@ import java.util.Set;
 @Api(value="cron")
 public class CronResource extends BaseResource {
 
+    int limit = 10;
     @GET
     @Path("get/{id}")
     @Session
@@ -85,6 +89,14 @@ public class CronResource extends BaseResource {
         else throw new AccessDeniedException();
     }
 
+    @GET
+    @Session
+    @Path("list/page/{page}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String list(@PathParam("page") Integer page) {
+        List<CronBean> crons= CronDAO.getInstance().list(page,limit);
+        return gson.toJson(crons);
+    }
 
     @POST
     @Path("create")
@@ -96,7 +108,8 @@ public class CronResource extends BaseResource {
             @FormParam("thingId") Integer thingId,
             @FormParam("name") String cronName,
             @FormParam("cronExpression") String cronExpression,
-            @FormParam("desiredState") String desiredState) throws AccessDeniedException {
+            @FormParam("desiredState") String desiredState,
+            @FormParam("ruleCronXml") String ruleCronXml) throws AccessDeniedException {
         ThingBean targetThing = ThingDAO.getInstance().get(thingId);
         UserBean user = (UserBean) getSecurityContext().getUserPrincipal();
         if (AuthorizationHelper.getInstance().checkAccess(user, targetThing)) {
@@ -107,6 +120,7 @@ public class CronResource extends BaseResource {
                 bean.setDesiredState(desiredState);
                 bean.setParentThing(ThingDAO.getInstance().get(thingId));
                 bean = CronDAO.getInstance().add(bean);
+
                 return gson.toJson(bean);
 
             } catch (Throwable t) {

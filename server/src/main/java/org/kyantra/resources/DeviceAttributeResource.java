@@ -57,7 +57,7 @@ public class DeviceAttributeResource extends BaseResource {
     @Session
     @Secure(roles = {RoleEnum.ALL, RoleEnum.WRITE}, subjectType = "deviceAttributes", subjectField = "parentId")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public String update(@PathParam("id") Integer id,
                          @FormParam("name") String name,
                          @FormParam("type") String type,
@@ -117,6 +117,7 @@ public class DeviceAttributeResource extends BaseResource {
                 deviceAttribute.setName(name);
                 deviceAttribute.setType(type);
                 deviceAttribute.setDef(def);
+                deviceAttribute.setParentDevice(DeviceDAO.getInstance().get(parentDeviceId));
                 deviceAttribute.setOwnerUnit(targetUnit);
 
                 DeviceAttributeBean deviceAttributeBean = DeviceAttributeDAO.getInstance().add(deviceAttribute);

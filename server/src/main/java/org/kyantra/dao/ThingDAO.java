@@ -13,6 +13,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
+import org.kyantra.triggers.EntityHandler;
+
 /**
  * Created by Siddhesh Prabhugaonkar on 13-11-2017.
  */
@@ -33,6 +36,7 @@ public class ThingDAO extends BaseDAO{
 //        session.flush();
         session.getTransaction().commit();
         session.close();
+        EntityHandler.getInstance().triggerAdd(thingBean);
         return thingBean;
     }
 
@@ -78,6 +82,7 @@ public class ThingDAO extends BaseDAO{
         Session session = getService().getSessionFactory().openSession();
         Transaction tx = session.beginTransaction();
         ThingBean thing = session.get(ThingBean.class, id);
+        EntityHandler.getInstance().triggerDelete(thing);
         thing.getParentUnit().removeThing(thing);
 //        session.delete(thing);
 //        session.flush();
@@ -91,6 +96,8 @@ public class ThingDAO extends BaseDAO{
         Session session = getService().getSessionFactory().openSession();
         Transaction tx = session.beginTransaction();
         ThingBean thing = session.get(ThingBean.class, id);
+        String thingNew = name;
+        EntityHandler.getInstance().triggerUpdate(thingNew,thing);
         thing.setName(name);
         thing.setDescription(description);
         thing.setIp(ip);

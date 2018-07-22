@@ -2,6 +2,7 @@ package org.kyantra.resources;
 
 import org.glassfish.jersey.server.mvc.Template;
 import org.kyantra.beans.SnsBean;
+import org.kyantra.beans.ActuatorBean;
 import org.kyantra.beans.ThingBean;
 import org.kyantra.beans.UnitBean;
 import org.kyantra.beans.UserBean;
@@ -20,6 +21,18 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+// chatbot imports
+import javax.ws.rs.core.MediaType;
+import com.google.gson.JsonElement;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.cloud.dialogflow.v2.*;
+import com.google.cloud.dialogflow.v2.TextInput.Builder;
+import com.google.protobuf.*;
+import com.google.protobuf.util.*;
+import com.google.protobuf.util.JsonFormat.*;
 
 @Path("/")
 public class HomeResource extends BaseResource {
@@ -44,6 +57,51 @@ public class HomeResource extends BaseResource {
         map.put("units",unitBeanList);
         setCommonData(map);
         return map;
+    }
+
+    // for chetbot ui
+    @GET
+    @Path("/oauth")
+    @Template(name = "/auth/oauth.ftl")
+    public Map<String, Object> oauth() {
+        final Map<String, Object> map = new HashMap<String, Object>();
+        return map;
+    }
+
+    @GET
+    @Path("/chatbot")
+    @Template(name = "/chatbot/chatbot.ftl")
+    public Map<String, Object> chatbot() {
+        final Map<String, Object> map = new HashMap<String, Object>();
+        return map;
+    }
+
+    @POST
+    @Path("/eyiot")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response eyIOT(JsonNode data, @CookieParam("authorization") String token){
+        if(token == null || token == "" || token.length()==0) {
+            Response res = Response.status(Response.Status.OK).entity("{\"response\" : \"sign in required\" }").build();
+            return res;
+        }
+        String str = data.get("str").asText();
+        try(SessionsClient sessionsClient = SessionsClient.create()) {
+            SessionName session = SessionName.of("eyantra-iot-f0957", token);
+            Builder textInput = TextInput.newBuilder().setText(str).setLanguageCode("en-US");
+            QueryInput queryInput = QueryInput.newBuilder().setText(textInput).build();
+
+            DetectIntentResponse response = sessionsClient.detectIntent(session, queryInput);
+            QueryResult queryResult = response.getQueryResult();
+            String jsonString = JsonFormat.printer().print(queryResult);
+            Response res = Response.status(Response.Status.OK).entity("{\"response\" : "+jsonString+"}").build();
+            return res;
+        }
+        catch(Exception e) {
+            System.out.println("error: "+e);
+            Response res = Response.status(Response.Status.OK).entity("{\"response\" : \"i didn't get that !\" }").build();
+            return res;
+        }
     }
 
     @GET
@@ -259,6 +317,19 @@ public class HomeResource extends BaseResource {
         map.put("active","sns");
         SnsBean sns = SnsDAO.getInstance().get(id);
         map.put("sns", sns);
+        setCommonData(map);
+        return map;
+    }
+
+    @GET
+    @Path("/rules/actuator/{id}")
+    @Template(name = "/rules/actuator/get.ftl")
+    @Session
+    public Map<String, Object> getActuatorRules(@PathParam("id") Integer id) {
+        final Map<String, Object> map = new HashMap<String, Object>();
+        map.put("active","actuator");
+        ActuatorBean actuator = ActuatorDAO.getInstance().get(id);
+        map.put("actuator", actuator);
         setCommonData(map);
         return map;
     }
