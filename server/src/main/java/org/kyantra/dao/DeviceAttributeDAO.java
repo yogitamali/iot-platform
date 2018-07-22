@@ -3,16 +3,19 @@ package org.kyantra.dao;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Restrictions;
 import org.kyantra.beans.DeviceAttributeBean;
 import org.kyantra.beans.DeviceBean;
 import org.kyantra.beans.ThingBean;
 import org.kyantra.beans.UnitBean;
+import org.kyantra.beans.PubSubBean;
+import org.kyantra.triggers.EntityHandler;
 
 import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 /**
  * Created by Siddhesh Prabhugaonkar on 13-11-2017.
  */
@@ -31,6 +34,7 @@ public class DeviceAttributeDAO extends BaseDAO {
 
         session.getTransaction().commit();
         session.close();
+        EntityHandler.getInstance().triggerAdd(deviceAttributeBean);
         return deviceAttributeBean;
     }
 
@@ -76,6 +80,7 @@ public class DeviceAttributeDAO extends BaseDAO {
         Session session = getService().getSessionFactory().openSession();
         Transaction tx = session.beginTransaction();
         DeviceAttributeBean deviceAttribute = session.get(DeviceAttributeBean.class, id);
+        EntityHandler.getInstance().triggerDelete(deviceAttribute);
         // required by bidirectional one to many
         deviceAttribute.getParentDevice().removeDeviceAttribute(deviceAttribute);
 //        session.delete(deviceAttribute);
@@ -89,6 +94,8 @@ public class DeviceAttributeDAO extends BaseDAO {
         Session session = getService().getSessionFactory().openSession();
         Transaction tx = session.beginTransaction();
         DeviceAttributeBean deviceAttribute = session.get(DeviceAttributeBean.class, id);
+        String deviceAttributeNew = name;
+        EntityHandler.getInstance().triggerUpdate(deviceAttributeNew,deviceAttribute);
         deviceAttribute.setName(name);
         deviceAttribute.setType(type);
         deviceAttribute.setDef(def);
@@ -113,5 +120,26 @@ public class DeviceAttributeDAO extends BaseDAO {
 
     private String sanitize(String string){
         return string.replaceAll("[^a-zA-Z0-9]", "");
+    }
+
+    public List<PubSubBean> listForPubSub(String str){
+        Session session = mService.getSessionFactory().openSession();
+        Criteria cr = session.createCriteria(DeviceAttributeBean.class);
+        cr.add(Restrictions.like("name", "%"+str+"%"));
+
+        List<DeviceAttributeBean>deviceAttributeBeans = cr.list();
+        List<PubSubBean> pubSubBeans = new ArrayList<PubSubBean>(deviceAttributeBeans.size());
+        for(DeviceAttributeBean deviceAttribute : deviceAttributeBeans) {
+            PubSubBean pubsub = new PubSubBean();
+            pubsub.setDeviceId(deviceAttribute.getParentDevice().getId());
+            pubsub.setDeviceAttributeId(deviceAttribute.getId());
+            pubsub.setDeviceName(deviceAttribute.getParentDevice().getName());
+            pubsub.setDeviceAttributeName(deviceAttribute.getName());
+            pubsub.setParentThingId(deviceAttribute.getParentDevice().getParentThing().getId());
+            pubsub.setParentThingName(deviceAttribute.getParentDevice().getParentThing().getName());
+            pubSubBeans.add(pubsub);
+        }
+        session.close();
+        return pubSubBeans;
     }
 }

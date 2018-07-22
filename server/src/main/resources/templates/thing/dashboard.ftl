@@ -1,6 +1,7 @@
 <#include "../common/header.ftl">
 <body>
 <#include "../common/navbar.ftl"/>
+<#include "../common/chatbot.ftl"/>
 <div class="container-fluid" id="container-main">
 <#include "../common/sidenavbar.ftl"/>
     <main role="main" class="main col-sm-9 ml-sm-auto col-md-10 pt-3">
@@ -43,14 +44,19 @@
                         <div class="card-body p-1 d-flex justify-content-center align-content-center">
                             <div class="m-1 w-100 h-100 mw-100 mh-100">
                                 <div v-if="!att.actuator">
+                                <#--<select class="form-control" v-model="chartTypesSelected[att.id]"-->
+                                <#--v-on:change="(chartInitFunctions[chartTypesSelected[att.id]])(att)">-->
+                                <#--<option disabled value="">Please select one</option>-->
+                                <#--<option v-for="chartType in chartTypes[att.type]"-->
+                                <#--v-bind:value="chartType.value">-->
+                                <#--{{ chartType.text }}-->
+                                <#--</option>-->
+                                <#--</select>-->
                                 <#--canvas is required by chartsJS-->
                                     <canvas v-if="chartTypeRequires[chartTypesSelected[att.id]]=='canvas'"
                                             v-bind:id="'att_'+att.id">
                                     </canvas>
                                 <#--div is required by GCharts-->
-                                    <div v-else-if="att.type == 'String'">
-                                        {{att.value}}
-                                    </div>
                                     <div v-else v-bind:id="'att_'+att.id">
                                         <img src="/static/img/ajax-loader.gif"/>
                                     </div>

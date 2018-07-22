@@ -1,6 +1,8 @@
 <#include "../common/header.ftl">
+<#include "../blockly/blocklyHeader.ftl"/>
 <body>
 <#include "../common/navbar.ftl"/>
+<#include "../common/chatbot.ftl"/>
 <div class="container-fluid" id="container-main">
 <#if user??>
     <#include "../common/sidenavbar.ftl"/>
@@ -19,7 +21,8 @@
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
-                        {{ thing.name }}
+                        <span>(<span id="thingId">{{ thing.id }}</span>) | </span>
+                        <span id="thingName">{{ thing.name }}</span>
                         <div class="float-right">
                             <div class="row clearfix">
                                 <img src="/static/img/ajax-loader.gif" v-if="saveLoaderStorage">
@@ -107,13 +110,14 @@
                                 </td>
                                 <td>
                                     <button class="btn btn-danger btn-sm text-white"
-                                            v-on:click="deleteCron(cron)">DELETE</button>
+                                            v-on:click="deleteCron(cron)">Delete</button>
                                 </td>
                             </tr>
                         </table>
                         <div v-else class="h3 pt-2 pb-2 text-center text-muted" v-else>No crons</div>
                     </div>
                     <div class="card-footer">
+                        <input id="cronXml" type="hidden">
                         <button v-on:click="addCron" class="btn btn-sm btn-primary">ADD CRON</button>
                         <#--<button v-on:click="deleteCron(cron)" class="btn btn-sm btn-default">EDIT</button>-->
                     </div>
@@ -152,7 +156,12 @@
                                                 v-on:click="editRuleModal(rule, idx)">EDIT</button>
                                     </td>
                                     <td>
+                                    <div v-if="rule.snsAction">
                                         <a v-bind:href="'/rules/' + rule.type.toLowerCase() + '/' + rule.snsAction.id" class="btn btn-success btn-sm" role="button" aria-pressed="true">DETAILS</a>
+                                    </div>
+                                    <div v-if="rule.actuatorAction">
+                                        <a v-bind:href="'/rules/' + rule.type.toLowerCase() + '/' + rule.actuatorAction.id" class="btn btn-success btn-sm" role="button" aria-pressed="true">DETAILS</a>
+                                    </div>
                                         <#--<button v-on:click="" class="btn btn-sm btn-success">CHANGE</button>-->
                                     </td>
                                 </tr>
@@ -174,7 +183,7 @@
                     </div>
 
                     <div class="card-body p-1">
-                        <form autocomplete="on">
+                        <form>
                             <div class="form-group">
                                 <label class="col-form-label" for="formGroupExampleInput">Topic Name</label>
                                 <input v-model="testTopic" type="text" class="form-control" id="formGroupExampleInput"
@@ -200,6 +209,8 @@
 <#include "../modals/crud_cron.ftl"/>
 <#include "../modals/generate.ftl"/>
 <#include "../modals/crud_rule.ftl"/>
+<#include "../modals/rule_if.ftl"/>
+<#include "../modals/rule_then.ftl"/>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
@@ -210,6 +221,7 @@
     var token = $.cookie("authorization");
     var userId = ${user.id};
     var thingId = ${thing.id};
+
     var app = new Vue({
         el: '#container-main',
         data: {
@@ -242,7 +254,8 @@
             cronAttributeValue: "",
             cronName: "",
             crons: [],
-            storageEnabled: ""
+            storageEnabled: "",
+            blocklyXmls: []
         },
         methods: {
 
@@ -251,9 +264,9 @@
                 //TODO
             },
 
-            // TODO: Check the responses
+
             "deleteThing": function () {
-                // alert(thingId);
+                alert(thingId);
                 if (confirm("Are you sure you want to delete thing?") && confirm("Are you really sure?")) {
                     $.ajax({
                         url: "/thing/delete/" + thingId,
@@ -294,6 +307,9 @@
                     sns_topic: "",
                     subject: "",
                     message: "",
+                    attribute:"",
+                    newValue:"",
+                    ruleIfXml:"",
                     interval: 15
                 };
                 this.ruleUpdate = false;
@@ -304,14 +320,14 @@
             "saveRule": function () {
                 var that = this;
                 that.saveLoader = true;
-
                 var formData = {
                     "name": that.createRule.name,
                     "description": that.createRule.description,
                     "data": that.createRule.data,
                     "topic": that.createRule.topic,
                     "condition": that.createRule.condition,
-                    "action": that.createRule.action
+                    "action": that.createRule.action,
+                    "ruleIfXml": that.createRule.ruleIfXml
                 };
 
                 // send extra parameters according to the type of rule
@@ -320,6 +336,9 @@
                     formData.subject = that.createRule.subject;
                     formData.message = that.createRule.message;
                     formData.interval = that.createRule.interval;
+                } else if(that.createRule.action == 'Actuator') {
+                    formData.attribute = that.createRule.attribute;
+                    formData.newValue = that.createRule.newValue;
                 }
 
                 console.log(that.createRule.action);
@@ -362,6 +381,13 @@
                 that.createRule.idx = idx;
                 // Load form modal in update mode
                 that.ruleUpdate = true;
+                // Load XML of blockly for IF condition
+                var blocklyIfXmlObject = this.blocklyXmls.find(function(blockly){
+                    return blockly.blockId == rule.id;
+                });
+                if(typeof blocklyIfXmlObject  != 'undefined' && blocklyIfXmlObject) {
+                    that.createRule.ruleIfXml = blocklyIfXmlObject.xml;
+                }
                 $('#create_rule').modal('show');
             },
 
@@ -375,7 +401,8 @@
                     "data": that.createRule.data,
                     "topic": that.createRule.topic,
                     "condition": that.createRule.condition,
-                    "parentThing": thingId
+                    "parentThing": thingId,
+                    "ruleIfXml": that.createRule.ruleIfXml
                 };
 
                 $.ajax({
@@ -489,7 +516,6 @@
 
             // load required data
             "load": function () {
-
                 var that = this;
                 $.ajax({
                     url: "/thing/get/" + thingId,
@@ -519,6 +545,30 @@
                     }
                 });
                 $.ajax({
+                    url: "/rule/actuator/thing/" + thingId,
+                    success: function (data) {
+                        that.rules = data;
+                    }
+                });
+                $.ajax({
+                    url: "/rule/actuator/thing/" + thingId,
+                    success: function (data) {
+                        that.rules = data;
+                    }
+                });
+                $.ajax({
+                    url: "/rule/actuator/thing/" + thingId,
+                    success: function (data) {
+                        that.rules = data;
+                    }
+                });
+                $.ajax({
+                    url: "/blockly/thing/" + thingId,
+                    success: function (data) {
+                        that.blocklyXmls = data;
+                    }
+                });
+                $.ajax({
                     url: "/rule/actions",
                     success: function(data) {
                         console.log(data);
@@ -531,8 +581,8 @@
 
             // TODO: Clear all the inputs here
             "addCron": function () {
-
                 $("#create_cron").modal('show');
+                addBlocklyCron();
             },
 
             // "edit": function () {
@@ -565,35 +615,37 @@
             },
 
             "saveCron": function () {
-
                 var that = this;
                 that.saveLoader = true;
-                var desired = {};
+                saveCronData(that, function() {
+                    var desired = {};
 
-                desired["device" + that.cronDevice.id + "." + that.cronAttribute.id] = (that.cronAttribute.type === 'Integer' || that.cronAttribute.type === 'Boolean') ? parseInt(that.cronAttributeValue, 10) : that.cronAttributeValue;
-                if (that.cronAttribute.type === 'Double') {
-                    desired["device" + that.cronDevice.id + "." + that.cronAttribute.id] = parseFloat(that.cronAttributeValue);
-                }
-                $.ajax({
-                    url: "/cron/create",
-                    "method": "POST",
-                    "data": {
-                        "name": that.cronName,
-                        "thingId": thingId,
-                        "cronExpression": that.cronExpression,
-                        "desiredState": JSON.stringify(desired)
-                    },
-                    success: function (data) {
-                        that.saveLoader = false;
-                        $("#create_cron").modal('hide');
-                        that.getCrons();
+                    desired["device" + that.cronDevice.id + "." + that.cronAttribute.id] = (that.cronAttribute.type === 'Integer' || that.cronAttribute.type === 'Boolean') ? parseInt(that.cronAttributeValue, 10) : that.cronAttributeValue;
+                    if (that.cronAttribute.type === 'Double') {
+                        desired["device" + that.cronDevice.id + "." + that.cronAttribute.id] = parseFloat(that.cronAttributeValue);
                     }
+
+                    $.ajax({
+                        url: "/cron/create",
+                        "method": "POST",
+                        "data": {
+                            "name": that.cronName,
+                            "thingId": thingId,
+                            "cronExpression": that.cronExpression,
+                            "desiredState": JSON.stringify(desired)
+                        },
+                        success: function (data) {
+                            that.saveLoader = false;
+                            $("#create_cron").modal('hide');
+                            that.getCrons();
+                        }
+                    });
                 });
             },
 
             "removeAttr": function (key) {
                 if (key !== -1) {
-                    this.createDevice.deviceAttributes.splice(key, 1);
+                    array.splice(key, 1);
                 }
             },
 
@@ -601,8 +653,6 @@
                 console.log('Inside addAttr');
                 if (this.cttr.name && this.cttr.type) {
                     this.createDevice.deviceAttributes.push(Object.assign({}, this.cttr));
-                    this.cttr.name = "";
-                    this.cttr.type = "";
                 }
             },
 
