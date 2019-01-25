@@ -13,6 +13,8 @@ import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.mvc.freemarker.FreemarkerMvcFeature;
+import java.net.URI;
+
 import org.kyantra.filters.AuthorizationFilter;
 import org.kyantra.filters.CORSFilter;
 import org.kyantra.filters.SessionFilter;
@@ -20,7 +22,6 @@ import org.kyantra.exceptionhandling.AppExceptionMapper;
 import org.kyantra.resources.AuthResource;
 import org.kyantra.services.HibernateService;
 
-import java.net.URI;
 
 public class Main {
 
@@ -29,7 +30,7 @@ public class Main {
         String resources = "org.kyantra.resources";
         BeanConfig beanConfig = new BeanConfig();
         beanConfig.setTitle("E-Yantra IoT Platform API");
-        beanConfig.setDescription("Below are endpoints defined for E-Yantra IoT Platform. Note that you need to have an account so that you can get the token which is mandatory to make requests.");
+        beanConfig.setDescription("Below are endpoints defined for e-Yantra IoT Platform. Note that you need to have an account so that you can get the token which is mandatory to make requests.");
         beanConfig.setVersion("1.2.3");
         beanConfig.setSchemes(new String[]{"http"});
         beanConfig.setBasePath("/");
