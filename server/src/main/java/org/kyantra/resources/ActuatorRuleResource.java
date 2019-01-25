@@ -121,7 +121,7 @@ public class ActuatorRuleResource extends BaseResource {
                 BlocklyDAO.getInstance().add(blocklyIfXmlBean);
             } catch (Exception e) {
                 e.printStackTrace();
-                return "{\"success\": false}";
+                throw e;
             }
             return gson.toJson(ruleBean);
         }

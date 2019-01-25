@@ -226,7 +226,7 @@
                         url: "/right/delete/" + right.id,
                         "method": "DELETE",
                         success: function (data) {
-                            alert('rights deleted');
+                            alert('Rights deleted');
                             that.load();
                         }
                     });
@@ -238,7 +238,7 @@
                     url: "/right/delete/" + rightId,
                     "method": "DELETE",
                     success: function (data) {
-                        alert('rights deleted');
+                        alert('Rights deleted');
                         this.load();
                     }
                 });

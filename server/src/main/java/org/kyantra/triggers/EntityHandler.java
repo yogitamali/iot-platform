@@ -7,7 +7,6 @@ import java.net.HttpURLConnection;
 import java.io.OutputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import org.hibernate.Session;
 
 import org.kyantra.dao.ThingDAO;
 import org.kyantra.dao.DeviceDAO;
@@ -17,14 +16,14 @@ import org.kyantra.dao.UnitDAO;
 import org.kyantra.beans.ThingBean;
 import org.kyantra.beans.DeviceAttributeBean;
 import org.kyantra.beans.UnitBean;
-import org.kyantra.beans.UserBean;
 import org.kyantra.beans.DeviceBean;
-import org.kyantra.helper.AuthorizationHelper;
+
 
 public class EntityHandler {
     static EntityHandler instance = new EntityHandler();
     public static EntityHandler getInstance() { return instance; }
-    static String devAccessToken = "c26d9d9ed040446ab76f3a81d6638e24";
+//    static String devAccessToken = "c26d9d9ed040446ab76f3a81d6638e24";
+    static String devAccessToken = ConfigDAO.getInstance().get("devAccessToken").getValue();
 
     public static String[] getParameters(Object o) {
         String parameters[] = new String[3];
@@ -63,7 +62,7 @@ public class EntityHandler {
             con = (HttpURLConnection) urlForRequest.openConnection();
             con.setRequestMethod(type);
             con.setRequestProperty("Content-Type", "application/json");
-            con.setRequestProperty("Authorization", "Bearer "+devAccessToken);
+            con.setRequestProperty("Authorization", "Bearer " + devAccessToken);
             con.setDoOutput(true);
             String str =  inputData;
             byte[] outputInBytes = str.getBytes("UTF-8");
@@ -213,7 +212,7 @@ public class EntityHandler {
         }
     }
 
-    //update entities from dialogflow
+    // update entities from dialogflow
     public void triggerUpdate(String newObjectName,Object object) {
         String parameters[] = getParameters(object);
         String objectName = parameters[0];

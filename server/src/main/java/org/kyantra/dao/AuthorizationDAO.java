@@ -48,7 +48,7 @@ public class AuthorizationDAO extends BaseDAO{
                 return true;
 
             return false;
-        }catch (Throwable t){
+        } catch (Throwable t) {
             return true;
         }
     }
@@ -67,7 +67,7 @@ public class AuthorizationDAO extends BaseDAO{
                 return true;
 
             return false;
-        }catch (Throwable t){
+        } catch (Throwable t) {
             return true;
         }
     }
@@ -85,7 +85,7 @@ public class AuthorizationDAO extends BaseDAO{
                 return true;
 
             return false;
-        }catch (Throwable t) {
+        } catch (Throwable t) {
             return true;
         }
     }

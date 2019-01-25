@@ -152,8 +152,8 @@ public class UnitResource extends BaseResource {
 
         } catch (Throwable t) {
             t.printStackTrace();
+            throw t;
         }
-        return "{\"success\":false}";
     }
 
 

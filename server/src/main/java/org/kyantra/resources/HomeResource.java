@@ -59,7 +59,7 @@ public class HomeResource extends BaseResource {
         return map;
     }
 
-    // for chetbot ui
+    // for chatbot ui
     @GET
     @Path("/oauth")
     @Template(name = "/auth/oauth.ftl")
@@ -87,7 +87,7 @@ public class HomeResource extends BaseResource {
         }
         String str = data.get("str").asText();
         try(SessionsClient sessionsClient = SessionsClient.create()) {
-            SessionName session = SessionName.of("eyantra-iot-f0957", token);
+            SessionName session = SessionName.of("eyisa-44cfb", token);
             Builder textInput = TextInput.newBuilder().setText(str).setLanguageCode("en-US");
             QueryInput queryInput = QueryInput.newBuilder().setText(textInput).build();
 

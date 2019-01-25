@@ -19,7 +19,8 @@ public class HibernateService {
             configuration.configure("hibernate.cfg.xml");
         else if (System.getProperty("environment").equals(EnvironmentConfig.TEST))
             configuration.configure("hibernate-test.cfg.xml");
-        else configuration.configure("hibernate.cfg.xml");
+        else
+            configuration.configure("hibernate.cfg.xml");
 
         configuration.addAnnotatedClass(UserBean.class)
                 .addAnnotatedClass(RightsBean.class)
