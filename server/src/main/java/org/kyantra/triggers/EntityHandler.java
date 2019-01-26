@@ -179,7 +179,7 @@ public class EntityHandler {
     public void triggerDelete(Object o) {
         String parameters[] = getParameters(o);
         String objectName = parameters[0];
-        if(isValid(objectName,o)) {
+        if(isValid(objectName, o)) {
             int id = Integer.parseInt(parameters[2]);
             String eid = parameters[1];
             String url = new String("https://api.dialogflow.com/v1/entities/"+eid+"/entries?v=20150910");
