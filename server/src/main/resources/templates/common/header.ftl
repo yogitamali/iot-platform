@@ -9,7 +9,6 @@
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.5.13/dist/vue.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-router/3.0.1/vue-router.js"></script>
     <script
             src="https://code.jquery.com/jquery-3.2.1.min.js"
             integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
@@ -78,7 +77,7 @@
         }
 
         body {
-            background: url(/img/bg.jpg) no-repeat center center fixed;
+            /*background: url(static/img/bg.jpg) no-repeat center center fixed;*/
             -webkit-background-size: cover;
             -moz-background-size: cover;
             -o-background-size: cover;
