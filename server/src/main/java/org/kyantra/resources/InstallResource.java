@@ -13,8 +13,11 @@ import org.kyantra.dao.ThingDAO;
 import org.kyantra.dao.UnitDAO;
 import org.kyantra.dao.UserDAO;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.SecurityContext;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +28,11 @@ import java.util.Map;
  */
 @Path("install")
 public class InstallResource extends BaseResource {
+
+    InstallResource(@Context SecurityContext sc,
+                  @Context HttpServletRequest request) {
+        super(sc, request);
+    }
 
     @GET
     @Template(name = "/index.ftl") // TODO: 21-11-2017
@@ -50,7 +58,7 @@ public class InstallResource extends BaseResource {
             UnitBean unit1 = new UnitBean();
             unit1.setUnitName("My Main Unit");
             unit1.setDescription("sample description");
-            unit1.setPhoto("hhttp://p0.static.bookstruck.in.s3.amazonaws.com/images/b5b8f6d9aa9049df91f9b5d45418b073.png\n");
+            unit1.setPhoto("http://p0.static.bookstruck.in.s3.amazonaws.com/images/b5b8f6d9aa9049df91f9b5d45418b073.png\n");
             UnitDAO.getInstance().add(unit1);
 
             UnitBean unit2 = new UnitBean();

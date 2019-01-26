@@ -27,8 +27,11 @@ import org.kyantra.utils.AwsIotHelper;
 import org.kyantra.utils.Constant;
 import org.kyantra.utils.ThingHelper;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 import java.io.File;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
@@ -45,6 +48,10 @@ public class ThingResource extends BaseResource {
 
     int limit = 10;
 
+    ThingResource(@Context SecurityContext sc,
+                  @Context HttpServletRequest request) {
+        super(sc, request);
+    }
 
     @GET
     @Session

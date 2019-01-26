@@ -13,9 +13,8 @@ import org.kyantra.interfaces.Session;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -23,7 +22,6 @@ import java.util.Map;
 import java.util.Set;
 
 // chatbot imports
-import javax.ws.rs.core.MediaType;
 import com.google.gson.JsonElement;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.core.JsonParser;
@@ -37,6 +35,10 @@ import com.google.protobuf.util.JsonFormat.*;
 @Path("/")
 public class HomeResource extends BaseResource {
 
+    HomeResource(@Context SecurityContext sc,
+                 @Context HttpServletRequest request) {
+        super(sc, request);
+    }
 
     @GET
     @Path("/session/status")

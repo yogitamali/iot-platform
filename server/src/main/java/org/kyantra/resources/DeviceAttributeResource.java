@@ -11,8 +11,11 @@ import org.kyantra.interfaces.Secure;
 import org.kyantra.interfaces.Session;
 
 import javax.print.attribute.standard.Media;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
 /**
@@ -23,6 +26,11 @@ import java.util.List;
 public class DeviceAttributeResource extends BaseResource {
 
     int limit = 10;
+
+    DeviceAttributeResource(@Context SecurityContext sc,
+                  @Context HttpServletRequest request) {
+        super(sc, request);
+    }
 
     @GET
     @Path("get/{id}")

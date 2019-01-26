@@ -4,8 +4,11 @@ import io.swagger.annotations.Api;
 import org.kyantra.aws.ActionHelper;
 import org.kyantra.interfaces.Session;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 
 @Path("/rule")
 @Api(value = "/rule")
@@ -13,6 +16,11 @@ public class RuleResource extends BaseResource {
 
     // Sub resource classes instances don't get the request object so you have to explicitly provide
     // securityContext (sc) and requestContext (request) while bootstrapping
+    RuleResource(@Context SecurityContext sc,
+                  @Context HttpServletRequest request) {
+        super(sc, request);
+    }
+
     @Path("/ddb")
     public DDBRuleResource getDDBRule() {
         return new DDBRuleResource(sc, request);

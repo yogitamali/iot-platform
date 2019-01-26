@@ -14,8 +14,11 @@ import org.kyantra.helper.UnitHelper;
 import org.kyantra.interfaces.Secure;
 import org.kyantra.interfaces.Session;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +33,11 @@ import java.util.stream.Collectors;
 public class UnitResource extends BaseResource {
 
     int limit = 10;
+
+    UnitResource(@Context HttpServletRequest request,
+                 @Context SecurityContext sc) {
+        super(sc, request);
+    }
 
     @GET
     @Path("get/{id}")

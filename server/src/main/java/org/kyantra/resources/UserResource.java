@@ -9,8 +9,11 @@ import org.kyantra.exceptionhandling.ExceptionMessage;
 import org.kyantra.interfaces.Secure;
 import org.kyantra.interfaces.Session;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
 import java.util.List;
 
@@ -19,6 +22,11 @@ import java.util.List;
 public class UserResource extends BaseResource {
 
     int limit = 10;
+
+    UserResource(@Context SecurityContext sc,
+                  @Context HttpServletRequest request) {
+        super(sc, request);
+    }
 
     @GET
     @Path("get/{id}")

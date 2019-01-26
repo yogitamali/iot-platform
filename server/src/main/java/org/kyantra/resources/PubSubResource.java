@@ -16,8 +16,11 @@ import org.kyantra.interfaces.Secure;
 import org.kyantra.interfaces.Session;
 import org.kyantra.utils.AwsIotHelper;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 import java.util.Deque;
 import java.util.Map;
 import java.util.List;
@@ -33,8 +36,9 @@ public class PubSubResource extends BaseResource {
     static Map<String,Deque<String>> messages  = new ConcurrentHashMap<>();
 
     // TODO: 6/6/18 Some issues with pubsub resource
-    public PubSubResource() throws AWSIotException {
-        super();
+    public PubSubResource(@Context SecurityContext sc,
+                          @Context HttpServletRequest request) throws AWSIotException {
+        super(sc, request);
         String awsKey = ConfigDAO.getInstance().get("awsKey").getValue();
         String awsSecret = ConfigDAO.getInstance().get("awsSecret").getValue();
         String endpoint = ConfigDAO.getInstance().get("endpoint").getValue();

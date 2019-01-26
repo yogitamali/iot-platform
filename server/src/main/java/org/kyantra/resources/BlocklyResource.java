@@ -9,8 +9,12 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 import org.kyantra.interfaces.Session;
+
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 import java.util.Set;
 
@@ -29,6 +33,12 @@ import io.swagger.annotations.Api;
 
 @Path("/blockly")
 public class BlocklyResource extends BaseResource {
+
+    BlocklyResource(@Context SecurityContext sc,
+                  @Context HttpServletRequest request) {
+        super(sc, request);
+    }
+
     @GET
     @Session
     @Path("/getJson")

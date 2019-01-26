@@ -23,6 +23,8 @@ import java.util.UUID;
 
 //chat bot imports
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+
 import com.google.gson.JsonElement;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.core.JsonParser;
@@ -35,6 +37,14 @@ public class AuthResource extends BaseResource {
 
     @Context
     HttpServletRequest request;
+
+    @Context
+    SecurityContext sc;
+
+    AuthResource(@Context SecurityContext sc,
+                  @Context HttpServletRequest request) {
+        super(sc, request);
+    }
 
     @POST
     @Path("token")

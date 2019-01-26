@@ -14,11 +14,10 @@ public class BaseResource {
     static Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
     static HibernateService service;
 
-
-    @Context
+//    @Context
     SecurityContext sc;
 
-    @Context
+//    @Context
     HttpServletRequest request;
 
     public BaseResource(){
