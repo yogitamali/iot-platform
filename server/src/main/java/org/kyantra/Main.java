@@ -6,14 +6,19 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+
 import org.glassfish.grizzly.http.server.CLStaticHttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.ServerConfiguration;
+import org.glassfish.grizzly.ssl.SSLContextConfigurator;
+import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.mvc.freemarker.FreemarkerMvcFeature;
+
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.kyantra.filters.AuthorizationFilter;
 import org.kyantra.filters.CORSFilter;
@@ -21,13 +26,14 @@ import org.kyantra.filters.SessionFilter;
 import org.kyantra.exceptionhandling.AppExceptionMapper;
 import org.kyantra.resources.AuthResource;
 import org.kyantra.services.HibernateService;
-
+import org.kyantra.filters.HTTPSRedirectFilter;
 
 public class Main {
 
-    public static HttpServer startServer(int port) {
+    public static HttpServer startServer(int port, boolean useSSL) throws URISyntaxException {
 
         String resources = "org.kyantra.resources";
+
         BeanConfig beanConfig = new BeanConfig();
         beanConfig.setTitle("E-Yantra IoT Platform API");
         beanConfig.setDescription("Below are endpoints defined for e-Yantra IoT Platform. Note that you need to have an account so that you can get the token which is mandatory to make requests.");
@@ -54,9 +60,28 @@ public class Main {
         CLStaticHttpHandler staticHttpHandler = new CLStaticHttpHandler(loader,"static/");
         docsHandler.setFileCacheEnabled(false);
         staticHttpHandler.setFileCacheEnabled(true);
-        HttpServer server;
 
-        server = GrizzlyHttpServerFactory.createHttpServer(URI.create("http://0.0.0.0:"+port+"/"), rc);
+        HttpServer server = null;
+
+        if(useSSL){
+
+            rc.register(HTTPSRedirectFilter.class);
+
+
+            SSLContextConfigurator sslCon = new SSLContextConfigurator();
+
+            sslCon.setKeyStoreFile("/var/www/intg/intg.ks"); // contains server keypair
+            sslCon.setKeyStorePass("intg.io");
+            server = GrizzlyHttpServerFactory.createHttpServer(new URI("https://0.0.0.0/"),
+                    rc,
+                    true,
+                    new SSLEngineConfigurator(sslCon).setClientMode(false).setNeedClientAuth(false));
+
+            GrizzlyHttpServerFactory.createHttpServer(URI.create("http://0.0.0.0:80/"), rc);
+        } else {
+            server = GrizzlyHttpServerFactory.createHttpServer(URI.create("http://0.0.0.0:" + port + "/"), rc);
+        }
+
         ServerConfiguration cfg = server.getServerConfiguration();
         cfg.addHttpHandler(docsHandler, "/docs/");
         // TODO: 5/30/18 Enter to submit form in modals and other places
@@ -64,13 +89,14 @@ public class Main {
         return server;
     }
 
-    public static void main(String[] args) throws ParseException {
+    public static void main(String[] args) throws ParseException, URISyntaxException {
         Options options = new Options();
         options.addOption("port", true, "Port to run on");
+        options.addOption("ssl",false, "Use ssl");
         CommandLineParser parser = new BasicParser();
         CommandLine cmd = parser.parse( options, args);
         int port = Integer.parseInt(cmd.getOptionValue("port","8002"));
         HibernateService hibernateService = HibernateService.getInstance(); //initialized hibernate service
-        final HttpServer server = startServer(port);
+        final HttpServer server = startServer(port, cmd.hasOption("ssl"));
     }
 }
