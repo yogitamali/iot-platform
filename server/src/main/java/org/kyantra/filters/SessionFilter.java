@@ -55,18 +55,32 @@ public class SessionFilter implements ContainerRequestFilter {
         String authorizationHeader = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
 
         String authorizationCookie = requestContext.getCookies().getOrDefault("authorization", new Cookie("authorization", "")).getValue();
+        System.out.println("Cookie: " + authorizationCookie);
 
         // TODO: 6/4/18 Add authentication header here
         if (!authorizationCookie.isEmpty() || (authorizationHeader != null && !authorizationHeader.isEmpty())) {
             String authorizationToken = authorizationCookie.isEmpty() ? authorizationHeader : authorizationCookie;
             UserBean userBean = UserDAO.getInstance().getByToken(authorizationToken);
 
+            System.out.println(requestContext.getUriInfo().getPath());
             // If user provides a wrong auth token redirect him to login
-            if (userBean == null) {
+            if (userBean == null && requestContext.getUriInfo().getPath().equals("login")) {
+                return;
+            }
+            else if (userBean == null) {
                 try {
                     throw new RedirectionException(ExceptionMessage.TEMP_REDIRECT,
                             Response.Status.TEMPORARY_REDIRECT.getStatusCode(),
                             new URI("/login"));
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                }
+            }
+            else if (requestContext.getUriInfo().getPath().equals("login")) {
+                try {
+                    throw new RedirectionException(ExceptionMessage.PERMANENTLY_MOVED,
+                            Response.Status.MOVED_PERMANENTLY.getStatusCode(),
+                            new URI("/"));
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 }
@@ -100,6 +114,10 @@ public class SessionFilter implements ContainerRequestFilter {
 
 
         } else {
+            if (requestContext.getUriInfo().getPath().equals("login")) {
+                return;
+            }
+            System.out.println(requestContext.getUriInfo().getPath());
             try {
                 throw new RedirectionException(ExceptionMessage.TEMP_REDIRECT,
                         Response.Status.TEMPORARY_REDIRECT.getStatusCode(),

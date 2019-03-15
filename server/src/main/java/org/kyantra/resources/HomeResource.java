@@ -117,14 +117,16 @@ public class HomeResource extends BaseResource {
     // TODO: 6/1/18 if user has logged in move him to HOME path
     @GET
     @Path("/login")
+    @Session
     @Template(name = "/auth/login.ftl")
     public Map<String, Object> login() throws URISyntaxException {
-        UserBean userBean = (UserBean)getSecurityContext().getUserPrincipal();
-
-        if (userBean != null)
-            throw new RedirectionException(ExceptionMessage.PERMANENTLY_MOVED,
-                    Response.Status.MOVED_PERMANENTLY.getStatusCode(),
-                    new URI("/"));
+//        UserBean userBean = (UserBean)getSecurityContext().getUserPrincipal();
+//
+//        System.out.println(userBean);
+//        if (userBean != null)
+//            throw new RedirectionException(ExceptionMessage.PERMANENTLY_MOVED,
+//                    Response.Status.MOVED_PERMANENTLY.getStatusCode(),
+//                    new URI("/"));
 
         final Map<String, Object> map = new HashMap<String, Object>();
         return map;

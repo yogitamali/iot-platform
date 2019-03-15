@@ -14,19 +14,21 @@ import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.jackson.JacksonFeature;
+import org.glassfish.jersey.logging.LoggingFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.mvc.freemarker.FreemarkerMvcFeature;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.kyantra.filters.AuthorizationFilter;
-import org.kyantra.filters.CORSFilter;
-import org.kyantra.filters.SessionFilter;
+import org.kyantra.filters.*;
 import org.kyantra.exceptionhandling.AppExceptionMapper;
 import org.kyantra.resources.AuthResource;
 import org.kyantra.services.HibernateService;
-import org.kyantra.filters.HTTPSRedirectFilter;
+
+import java.lang.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class Main {
 
@@ -49,6 +51,9 @@ public class Main {
         rc.register(io.swagger.jaxrs.listing.ApiListingResource.class);
         rc.register(io.swagger.jaxrs.listing.SwaggerSerializers.class);
         rc.register(JacksonFeature.class);
+        //Jersey Logging Request and Response Entities using Filter
+        rc.register(LoggingFeature.class);
+        rc.register(CustomLoggingFilter.class);
         rc.register(AppExceptionMapper.class);
         rc.register(SessionFilter.class);
         rc.register(AuthorizationFilter.class);
@@ -89,7 +94,12 @@ public class Main {
         return server;
     }
 
+    //logger to log data in $logFile
+
+    final static Log logger = LogFactory.getLog(Main.class);
+
     public static void main(String[] args) throws ParseException, URISyntaxException {
+        logger.info("main start");
         Options options = new Options();
         options.addOption("port", true, "Port to run on");
         options.addOption("ssl",false, "Use ssl");
@@ -97,6 +107,8 @@ public class Main {
         CommandLine cmd = parser.parse( options, args);
         int port = Integer.parseInt(cmd.getOptionValue("port","8002"));
         HibernateService hibernateService = HibernateService.getInstance(); //initialized hibernate service
+        logger.info("hibernateService"+hibernateService);
         final HttpServer server = startServer(port, cmd.hasOption("ssl"));
+        logger.info("server data"+server);
     }
 }

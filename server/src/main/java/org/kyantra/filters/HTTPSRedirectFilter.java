@@ -1,5 +1,11 @@
 package org.kyantra.filters;
 
+
+
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.WebApplicationException;
@@ -13,12 +19,15 @@ import java.net.URISyntaxException;
 
 @Provider
 @Priority(Priorities.HEADER_DECORATOR)
+
+
 public class HTTPSRedirectFilter implements ContainerRequestFilter {
+    final static Log logger = LogFactory.getLog(HTTPSRedirectFilter.class);
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         try {
-            System.out.println("Filtering because https was enabled");
+            logger.info("Filtering because https was enabled");
             if(requestContext.getUriInfo().getRequestUri().getScheme().equals("http")) {
                 System.out.println("Redirecting");
                 throw new WebApplicationException(Response.temporaryRedirect(new URI("https://intg.io/")).build());

@@ -42,13 +42,13 @@ public class AppExceptionMapper implements ExceptionMapper<Throwable> {
             message.setDeveloperMessage(ExceptionMessage.DeveloperMessage.TEMP_REDIRECT);
             message.setLink(ExceptionMessage.Link.TEMP_REDIRECT);
             try {
-                return Response.temporaryRedirect(new URI("/login"))
-                        .cookie(new NewCookie("authorization", ""))
+                return Response.temporaryRedirect(((RedirectionException) ex).getLocation())
+//                        .cookie(new NewCookie("authorization", ""))
                         .status(message.getStatus())
                         .entity(gson.toJson(message))
                         .type(MediaType.APPLICATION_JSON)
                         .build();
-            } catch (URISyntaxException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
